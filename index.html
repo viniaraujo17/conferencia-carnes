@@ -90,6 +90,35 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:13px;display:block;margi
 .phead .badge{margin:0;font-size:12px;padding:5px 10px;white-space:nowrap}
 .pslot{padding:0 12px 4px}
 .ed{margin-top:12px}
+.cols{display:block}
+.chk{display:flex;align-items:center;gap:10px;font-size:16px;color:var(--ink);margin:2px 0;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+input[type="checkbox"]{width:26px;height:26px;padding:0;margin:0;-webkit-appearance:auto;appearance:auto;accent-color:var(--pri);flex:0 0 auto}
+.dir{font-size:14px;color:var(--mute);padding:0 4px}
+@media (max-width:430px){.wrap{padding:0 12px 96px}.lcd .big{font-size:46px}}
+@media (min-width:720px){
+  .wrap{max-width:1180px;padding:0 22px 110px}
+  body{font-size:18px}
+  h1{font-size:32px}
+  header p{font-size:16px}
+  .card h2{font-size:22px}
+  label{font-size:14px}
+  input,select,textarea{font-size:19px;padding:13px 12px}
+  .btn{font-size:19px;padding:17px}
+  .btn.sm{font-size:17px;padding:14px}
+  .cols{display:grid;grid-template-columns:minmax(300px,2fr) 3fr;gap:20px;align-items:start}
+  .colL,.colR{min-width:0}
+  .rowh,.row{grid-template-columns:34px 1.1fr 1.3fr 110px 44px;gap:10px}
+  .row input,.row select{font-size:18px;padding:13px 10px}
+  .row .liq{font-size:18px}
+  .row .x{font-size:24px}
+  .lcd .big{font-size:64px}
+  .rows div{font-size:17px}
+  .phead b{font-size:18px}
+  .chk{font-size:18px}
+  .tabs button{font-size:17px;padding:17px 4px}
+  .sum{grid-template-columns:repeat(3,1fr)}
+  #p-hist,#p-cfg{max-width:780px;margin:0 auto}
+}
 </style>
 </head>
 <body>
@@ -97,6 +126,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:13px;display:block;margi
 <header><h1>Conferência de pesagem</h1><p>Cada produto da nota tem a sua pesagem</p></header>
 
 <section class="panel on" id="p-nova">
+  <div class="cols"><div class="colL">
   <div class="card"><h2>Nota fiscal (NF-e)</h2>
     <div class="two">
       <button class="btn sm" type="button" id="camB">Ler com a câmera</button>
@@ -131,6 +161,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:13px;display:block;margi
     </div>
   </div>
 
+  </div><div class="colR">
   <div class="card"><h2>Produtos da nota</h2>
     <div id="plist"></div>
     <button class="btn alt sm" type="button" id="addP">+ Adicionar produto</button>
@@ -141,8 +172,9 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:13px;display:block;margi
       <div class="full"><label for="pn">Produto (corte ou miúdo)</label><input id="pn" autocomplete="off" placeholder="Ex.: fígado"></div>
       <div><label for="ppnf">Peso na nota (kg)</label><input id="ppnf" type="text" inputmode="decimal" placeholder="0"></div>
       <div><label for="pqtd">Peças (opcional)</label><input id="pqtd" type="text" inputmode="numeric" placeholder="0"></div>
+      <label class="chk full"><input type="checkbox" id="pdir"><span>Pesado direto na balança (sem a pessoa)</span></label>
     </div>
-    <div class="rowh" style="margin-top:14px"><span></span><span>Pessoa</span><span>Peso com carne (kg)</span><span style="text-align:right">Só carne</span><span></span></div>
+    <div class="rowh" style="margin-top:14px"><span></span><span id="hP">Pessoa</span><span id="hW">Peso com carne (kg)</span><span style="text-align:right">Só carne</span><span></span></div>
     <div id="rows"></div>
     <div class="two">
       <button class="btn alt sm" type="button" id="add1">+ 1 passagem</button>
@@ -179,6 +211,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:13px;display:block;margi
   <button class="btn" type="button" id="calc">Calcular</button>
   <button class="btn" type="button" id="salvar">Salvar conferência</button>
   <button class="btn alt" type="button" id="limpar">Nova carga (limpar tudo)</button>
+  </div></div>
 </section>
 
 <section class="panel" id="p-hist">
@@ -240,7 +273,7 @@ var P=[],cur=0,listDirty=true;
 function nm(k){var v=($('n'+k).value||'').trim();return v||('Pessoa '+k)}
 function pname(i){return (P[i].name||'').trim()||('Produto '+(i+1))}
 function filled(pr){for(var i=0;i<pr.rows.length;i++){if(String(pr.rows[i].w).trim()!=='')return true}return false}
-function startFor(i){for(var j=i-1;j>=0;j--){for(var r=P[j].rows.length-1;r>=0;r--){if(String(P[j].rows[r].w).trim()!=='')return opp(P[j].rows[r].p)}}return '1'}
+function startFor(i){for(var j=i-1;j>=0;j--){if(P[j].direto)continue;for(var r=P[j].rows.length-1;r>=0;r--){if(String(P[j].rows[r].w).trim()!=='')return opp(P[j].rows[r].p)}}return '1'}
 function addRows(pr,n,s){for(var i=0;i<n&&pr.rows.length<300;i++){var p=pr.rows.length?opp(pr.rows[pr.rows.length-1].p):s;pr.rows.push({p:p,w:'',m:false})}}
 function newProd(name,pnf,qtd){var pr={name:name||'',pnf:pnf||'',qtd:qtd||'',rows:[]};addRows(pr,6,startFor(P.length));P.push(pr);return pr}
 function realt(pr,i){for(var j=i+1;j<pr.rows.length;j++){if(!pr.rows[j].m)pr.rows[j].p=opp(pr.rows[j-1].p)}}
@@ -250,7 +283,7 @@ function calcProd(pr,t){
   var tot=0,cnt=0,neg=false;
   pr.rows.forEach(function(r){
     if(String(r.w).trim()===''){r.liq=null;return}
-    var l=num(r.w)-t[r.p];r.liq=l;tot+=l;cnt++;if(l<0)neg=true;
+    var l=num(r.w)-(pr.direto?0:t[r.p]);r.liq=l;tot+=l;cnt++;if(l<0)neg=true;
   });
   var pnf=num(pr.pnf),dif=pnf>0?tot-pnf:0,pct=pnf>0?dif/pnf*100:0,st='na';
   if(cnt>0&&pnf>0)st=Math.abs(pct)<=cfg.tol?'ok':(dif<0?'down':'up');
@@ -274,7 +307,7 @@ function renderChips(res){
   P.forEach(function(pr,i){
     var x=res[i],lab=x.cnt?LABEL[x.st]:(x.pnf>0?'Falta pesar':'Sem peso'),cls=x.cnt?x.st:'na';
     $('pb'+i).textContent=pname(i);
-    $('pm'+i).textContent='Nota '+f(x.pnf)+' kg · carne '+f(x.tot)+' kg';
+    $('pm'+i).textContent='Nota '+f(x.pnf)+' kg · carne '+f(x.tot)+' kg'+(pr.direto?' · direto':'');
     var g=$('pg'+i);g.className='badge s-'+cls;g.textContent=lab;
   });
 }
@@ -283,16 +316,18 @@ function renderRows(){
   for(var i=0;i<pr.rows.length;i++){
     var r=pr.rows[i];
     h+='<div class="row" data-i="'+i+'"><span class="n">'+(i+1)+'</span>'+
-    '<select data-k="p" aria-label="Pessoa da passagem '+(i+1)+'"><option value="1"'+(r.p==='1'?' selected':'')+'>'+esc(nm(1))+'</option><option value="2"'+(r.p==='2'?' selected':'')+'>'+esc(nm(2))+'</option></select>'+
+    (pr.direto?'<span class="dir">Direto</span>':'<select data-k="p" aria-label="Pessoa da passagem '+(i+1)+'"><option value="1"'+(r.p==='1'?' selected':'')+'>'+esc(nm(1))+'</option><option value="2"'+(r.p==='2'?' selected':'')+'>'+esc(nm(2))+'</option></select>')+
     '<input data-k="w" type="text" inputmode="decimal" placeholder="0" value="'+esc(r.w)+'" aria-label="Peso da passagem '+(i+1)+'">'+
     '<span class="liq" id="l'+i+'"></span><button type="button" class="x" data-del="'+i+'" aria-label="Remover passagem '+(i+1)+'">×</button></div>';
   }
   $('rows').innerHTML=h;
+  $('hP').textContent=pr.direto?'Tipo':'Pessoa';
+  $('hW').textContent=pr.direto?'Peso na balança (kg)':'Peso com carne (kg)';
   calc();
 }
 function showProd(){
   var pr=P[cur];
-  $('pn').value=pr.name;$('ppnf').value=pr.pnf;$('pqtd').value=pr.qtd;
+  $('pn').value=pr.name;$('ppnf').value=pr.pnf;$('pqtd').value=pr.qtd;$('pdir').checked=!!pr.direto;
   listDirty=true;
   renderRows();
 }
@@ -345,6 +380,7 @@ function onField(e){
   if(id==='t1'||id==='t2'){taras[id]=el.value;save('taras2',taras)}
   if(id==='tol'){cfg.tol=num(el.value);save('cfg2',cfg)}
   if(id==='chave'){onChave();return}
+  if(id==='pdir'){P[cur].direto=el.checked;renderRows();return}
   if(id==='pn')P[cur].name=el.value;
   if(id==='ppnf')P[cur].pnf=el.value;
   if(id==='pqtd')P[cur].qtd=el.value;
@@ -503,7 +539,7 @@ $('salvar').onclick=function(){
     if(x.neg)neg=true;
     if(x.cnt&&!(x.pnf>0))bad=pname(i);
     if(!x.cnt)miss.push(pname(i));
-    items.push({name:pname(i),pnf:x.pnf,tot:x.tot,dif:x.cnt?x.dif:-x.pnf,pct:x.cnt?x.pct:-100,st:x.cnt?x.st:'down',cnt:x.cnt});
+    items.push({name:pname(i),pnf:x.pnf,tot:x.tot,dif:x.cnt?x.dif:-x.pnf,pct:x.cnt?x.pct:-100,st:x.cnt?x.st:'down',cnt:x.cnt,dir:!!pr.direto});
   });
   if(!items.length){toast('Informe o peso na nota e pese ao menos um produto');return}
   if(neg){toast('Corrija a passagem com peso menor que a tara');return}
@@ -540,11 +576,11 @@ $('lista').addEventListener('click',function(e){
   hist=hist.filter(function(h){return String(h.id)!==id});save('hist3',hist);renderHist();
 });
 function tsv(list){
-  var t='Data\tHora\tNF\tChave\tCNPJ emitente\tFornecedor\tProduto\tPlaca\tPeso NF (kg)\tPeso conferido (kg)\tDiferença (kg)\tDiferença (%)\tStatus\tPassagens\n';
+  var t='Data\tHora\tNF\tChave\tCNPJ emitente\tFornecedor\tProduto\tPlaca\tPeso NF (kg)\tPeso conferido (kg)\tDiferença (kg)\tDiferença (%)\tStatus\tPassagens\tPesagem\n';
   list.slice().reverse().forEach(function(h){
     var d=new Date(h.data),k=h.chave||'';
     h.prods.forEach(function(p){
-      t+=[d.toLocaleDateString('pt-BR'),d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),cl(h.nf),k,k.length===44?k.substr(6,14):'',cl(h.forn),cl(p.name),cl(h.placa),f(p.pnf),f(p.tot),f(p.dif),f(p.pct),p.cnt?LABEL[p.st]:'Não pesado',p.cnt].join('\t')+'\n';
+      t+=[d.toLocaleDateString('pt-BR'),d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),cl(h.nf),k,k.length===44?k.substr(6,14):'',cl(h.forn),cl(p.name),cl(h.placa),f(p.pnf),f(p.tot),f(p.dif),f(p.pct),p.cnt?LABEL[p.st]:'Não pesado',p.cnt,p.dir?'Direto':'Com pessoa'].join('\t')+'\n';
     });
   });
   return t;
